@@ -28,8 +28,8 @@ namespace SportsStore.UnitTests
             });
             ProductController controller = new ProductController(mock.Object);
             controller.PageSize = 3;
-            IEnumerable<Product> result = (IEnumerable<Product>)controller.List(2).Model;
-            Product[] arrayProduct = result.ToArray();
+            ProductsListViewModel result = (ProductsListViewModel)controller.List(null,2).Model;
+            Product[] arrayProduct = result.Products.ToArray();
             Assert.IsTrue(arrayProduct.Length == 2);
             Assert.AreEqual(arrayProduct[0].Name, "P4");
             Assert.AreEqual(arrayProduct[1].Name, "P5");
@@ -69,16 +69,49 @@ namespace SportsStore.UnitTests
             });
             ProductController productController = new ProductController(mock.Object);
             productController.PageSize = 2;
-            ProductsListViewModel productViewModel =(ProductsListViewModel) productController.List(2).Model;
+            ProductsListViewModel productViewModel =(ProductsListViewModel) productController.List(null,2).Model;
             PaggingInfo paggingInfoResult = productViewModel.paggingInfo;
             Assert.AreEqual(paggingInfoResult.CurrentPage, 2);
             Assert.AreEqual(paggingInfoResult.TotalItems, 4);
             Assert.AreEqual(paggingInfoResult.ItemsPerPage, 2);
             Assert.AreEqual(paggingInfoResult.TotalPages, 2);
+        }
 
+        [TestMethod]
+        public void Can_Fileter_Products()
+        {
+            Mock<IProductsRepository> mock = new Mock<IProductsRepository>();
+            mock.Setup(m => m.Products).Returns(new Product[]
+            {
+              new Product{ProductID=1,Name="P1",Category="C1"},
+              new Product{ProductID=1,Name="P2",Category="C2"},
+              new Product{ProductID=1,Name="P3",Category="C3"},
+              new Product{ProductID=1,Name="P4",Category="C4"},
+            });
+            ProductController productController = new ProductController(mock.Object);
+            productController.PageSize = 3;
+            Product[] results = ((ProductsListViewModel)productController.List("C1", 1).Model).Products.ToArray();
+            Assert.AreEqual(results.Length,1);
+            Assert.IsTrue(results[0].Name == "P1" && results[0].Category == "C1");
+        }
 
-
-
+        [TestMethod]
+        public void Can_Create_Categories()
+        {
+            Mock<IProductsRepository> mock = new Mock<IProductsRepository>();
+            mock.Setup(m => m.Products).Returns(new Product[]
+            {
+              new Product{ProductID=1,Name="P1",Category="C1"},
+              new Product{ProductID=1,Name="P2",Category="C1"},
+              new Product{ProductID=1,Name="P3",Category="C2"},
+              new Product{ProductID=1,Name="P4",Category="C3"},
+            });
+            NavController navController = new NavController(mock.Object);
+            string[] results = ((IEnumerable<string>)navController.Menu().Model).ToArray();
+            Assert.AreEqual(results.Length, 3);
+            Assert.AreEqual(results[0], "C1");
+            Assert.AreEqual(results[1], "C2");
+            Assert.AreEqual(results[2], "C3");
         }
     }
 }
