@@ -4,10 +4,11 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
-using Ninject;using SportsStore.Domain.Abstract;
+using Ninject;
+using SportsStore.Domain.Abstract;
 using SportsStore.Domain.Entities;
 using SportsStore.Domain.Concrete;
-
+using System.Configuration;
 
 namespace SportsStore.WebUI.Infrastructure
 {
@@ -42,6 +43,11 @@ namespace SportsStore.WebUI.Infrastructure
             //kernel.Bind<IProductsRepository>().ToConstant(mock.Object);
             kernel.Bind<IProductsRepository>().To<EFProductRepository>();
 
+            EmailSettings emailSettings = new EmailSettings()
+            {
+                WriteAsFile = bool.Parse(ConfigurationManager.AppSettings["WriteAsFile"] ?? "false")
+            };
+            kernel.Bind<IOrderProcessor>().To<EmailOrderProcessor>().WithConstructorArgument("settings", emailSettings);
             }
     }
 }
